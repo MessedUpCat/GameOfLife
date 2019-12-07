@@ -1,0 +1,62 @@
+from enum import Enum
+import time
+import numpy as numpy
+import pygame as pg
+
+
+class State (Enum):
+# dead or alive
+    Dead = 0
+    Alive = 1
+    POSSIBLE = [Dead,Alive]
+
+
+def random(size):
+    return numpy.random.choice(State.POSSIBLE.value, size * size, p=[0.7, 0.3]).reshape(size, size)
+
+
+def update(size, grid):
+    newgrid = grid.copy()
+# check
+    for i in range(size):
+        for j in range(size):
+            count = int(grid[(i-1)%size, (j-1)%size] + grid[i, (j-1)%size] + grid[(i+1)%size, (j-1)%size] + \
+                        grid[(i-1)%size, j] +  grid[(i+1)%size, j] + \
+                        grid[(i-1)%size, (j+1)%size] + grid[i, (j+1)%size] + grid[(i+1)%size, (j+1)%size] )
+            # Rules
+
+            if grid[i, j] == 1:
+                if (count < 2) or (count > 3) :
+                    newgrid[i, j] = 0
+            else:
+                if count == 3:
+                    newgrid[i, j] = 1
+
+    return newgrid
+
+
+def main():
+    size = 100
+    colors = numpy.array([[120, 250, 90], [250, 90, 120]])
+
+    pg.init()
+    grid = numpy.array([])
+    grid = random(size)
+    screen = pg.display.set_mode((500, 500))
+    clock = pg.time.Clock()
+
+    running = True
+    while running:
+        surface = pg.surfarray.make_surface(colors[grid])  # wyswietlenie klatki
+        surface = pg.transform.scale(surface, (500, 500))  # Scaled a bit.
+        grid = update(size, grid)
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                running = False
+        screen.blit(surface, (0, 0))
+        pg.display.flip()
+        clock.tick(60)
+        time.sleep(0.1)
+
+
+main()
